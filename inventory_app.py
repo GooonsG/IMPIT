@@ -1,203 +1,163 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
-from db_config import get_db_connection
+from tkinter import messagebox, ttk
+from db_config import connect_db
 
-class InventoryApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Inventory Management System")
-        self.root.geometry("600x400")
-        self.db = get_db_connection()
-        self.cursor = self.db.cursor(dictionary=True)
-        self.current_user = None
-        self.main_frame = tk.Frame(self.root)
-        self.main_frame.pack(fill="both", expand=True)
-        self.login_page()
+db = connect_db()
+cursor = db.cursor()
 
-    def clear_frame(self):
-        for widget in self.main_frame.winfo_children():
-            widget.destroy()
+root = tk.Tk()
+root.title("Inventory Management System")
+root.geometry("500x500")
+main_frame = tk.Frame(root)
+main_frame.pack(fill="both", expand=True)
 
-    def login_page(self):
-        self.clear_frame()
-        tk.Label(self.main_frame, text="Login", font=("Arial", 18)).pack(pady=10)
+def clear_frame(frame):
+    for widget in frame.winfo_children():
+        widget.destroy()
 
-        tk.Label(self.main_frame, text="Username").pack()
-        self.login_username = tk.Entry(self.main_frame)
-        self.login_username.pack()
+def login_page():
+    clear_frame(main_frame)
 
-        tk.Label(self.main_frame, text="Password").pack()
-        self.login_password = tk.Entry(self.main_frame, show="*")
-        self.login_password.pack()
+    tk.Label(main_frame, text="Username").pack()
+    username_entry = tk.Entry(main_frame)
+    username_entry.pack()
 
-        tk.Button(self.main_frame, text="Login", command=self.login).pack(pady=10)
-        tk.Button(self.main_frame, text="Register", command=self.register_page).pack()
+    tk.Label(main_frame, text="Password").pack()
+    password_entry = tk.Entry(main_frame, show="*")
+    password_entry.pack()
 
-    def register_page(self):
-        self.clear_frame()
-        tk.Label(self.main_frame, text="Register", font=("Arial", 18)).pack(pady=10)
-
-        tk.Label(self.main_frame, text="Username").pack()
-        self.reg_username = tk.Entry(self.main_frame)
-        self.reg_username.pack()
-
-        tk.Label(self.main_frame, text="Password").pack()
-        self.reg_password = tk.Entry(self.main_frame, show="*")
-        self.reg_password.pack()
-
-        tk.Button(self.main_frame, text="Register", command=self.register).pack(pady=10)
-        tk.Button(self.main_frame, text="Back to Login", command=self.login_page).pack()
-
-    def login(self):
-        username = self.login_username.get()
-        password = self.login_password.get()
-        query = "SELECT * FROM Users WHERE username=%s AND password_hash=%s"
-        self.cursor.execute(query, (username, password))
-        user = self.cursor.fetchone()
-        if user:
-            self.current_user = user
-            messagebox.showinfo("Success", f"Welcome {username}!")
-            self.dashboard()
+    def login():
+        username = username_entry.get()
+        password = password_entry.get()
+        cursor.execute("SELECT user_id, role FROM Users WHERE username=%s AND password_hash=%s", (username, password))
+        result = cursor.fetchone()
+        if result:
+            user_id, role = result
+            messagebox.showinfo("Success", f"Welcome, {role}")
+            if role == 'admin':
+                admin_dashboard(user_id, username)
+            else:
+                user_dashboard(user_id, username)
         else:
-            messagebox.showerror("Error", "Invalid username or password")
+            messagebox.showerror("Error", "Invalid credentials")
 
-    def register(self):
-        username = self.reg_username.get()
-        password = self.reg_password.get()
-        self.cursor.execute("SELECT * FROM Users WHERE username=%s", (username,))
-        if self.cursor.fetchone():
+    tk.Button(main_frame, text="Login", command=login).pack(pady=10)
+    tk.Button(main_frame, text="Register", command=register_page).pack()
+
+def register_page():
+    clear_frame(main_frame)
+
+    tk.Label(main_frame, text="New Username").pack()
+    username_entry = tk.Entry(main_frame)
+    username_entry.pack()
+
+    tk.Label(main_frame, text="New Password").pack()
+    password_entry = tk.Entry(main_frame, show="*")
+    password_entry.pack()
+
+    def register():
+        username = username_entry.get()
+        password = password_entry.get()
+        cursor.execute("SELECT * FROM Users WHERE username=%s", (username,))
+        if cursor.fetchone():
             messagebox.showerror("Error", "Username already exists")
             return
-        self.cursor.execute("INSERT INTO Users (username, password_hash) VALUES (%s, %s)", (username, password))
-        self.db.commit()
-        messagebox.showinfo("Success", "User registered!")
-        self.login_page()
+        cursor.execute("INSERT INTO Users (username, password_hash, role) VALUES (%s, %s, 'user')", (username, password))
+        db.commit()
+        messagebox.showinfo("Success", "Registered")
+        login_page()
 
-    def dashboard(self):
-        self.clear_frame()
-        tk.Label(self.main_frame, text=f"Dashboard - Logged in as {self.current_user['username']}", font=("Arial", 14)).pack(pady=10)
+    tk.Button(main_frame, text="Register", command=register).pack(pady=10)
+    tk.Button(main_frame, text="Back to Login", command=login_page).pack()
 
-        tk.Button(self.main_frame, text="Manage Products", width=20, command=self.manage_products).pack(pady=5)
-        tk.Button(self.main_frame, text="Logout", width=20, command=self.logout).pack(pady=5)
+def admin_dashboard(user_id, username):
+    clear_frame(main_frame)
+    tk.Label(main_frame, text=f"Admin Panel - {username}", font=('Arial', 14)).pack(pady=10)
 
-    def logout(self):
-        self.current_user = None
-        self.login_page()
+    tk.Label(main_frame, text="Product Name").pack()
+    name_entry = tk.Entry(main_frame)
+    name_entry.pack()
 
-    def manage_products(self):
-        self.clear_frame()
-        tk.Label(self.main_frame, text="Product Management", font=("Arial", 16)).pack(pady=10)
+    tk.Label(main_frame, text="Description").pack()
+    desc_entry = tk.Entry(main_frame)
+    desc_entry.pack()
 
-        # Product list
-        self.tree = ttk.Treeview(self.main_frame, columns=("ID", "Name", "Description", "Quantity"), show='headings')
-        self.tree.heading("ID", text="ID")
-        self.tree.column("ID", width=30)
-        self.tree.heading("Name", text="Name")
-        self.tree.column("Name", width=150)
-        self.tree.heading("Description", text="Description")
-        self.tree.column("Description", width=200)
-        self.tree.heading("Quantity", text="Quantity")
-        self.tree.column("Quantity", width=80)
-        self.tree.pack(pady=10)
+    tk.Label(main_frame, text="Quantity").pack()
+    qty_entry = tk.Entry(main_frame)
+    qty_entry.pack()
 
-        self.load_products()
-
-        # Entry fields for add/update
-        form_frame = tk.Frame(self.main_frame)
-        form_frame.pack(pady=10)
-
-        tk.Label(form_frame, text="Name").grid(row=0, column=0)
-        self.name_entry = tk.Entry(form_frame)
-        self.name_entry.grid(row=0, column=1)
-
-        tk.Label(form_frame, text="Description").grid(row=1, column=0)
-        self.desc_entry = tk.Entry(form_frame)
-        self.desc_entry.grid(row=1, column=1)
-
-        tk.Label(form_frame, text="Quantity").grid(row=2, column=0)
-        self.qty_entry = tk.Entry(form_frame)
-        self.qty_entry.grid(row=2, column=1)
-
-        btn_frame = tk.Frame(self.main_frame)
-        btn_frame.pack(pady=10)
-
-        tk.Button(btn_frame, text="Add Product", command=self.add_product).grid(row=0, column=0, padx=5)
-        tk.Button(btn_frame, text="Update Selected", command=self.update_product).grid(row=0, column=1, padx=5)
-        tk.Button(btn_frame, text="Delete Selected", command=self.delete_product).grid(row=0, column=2, padx=5)
-        tk.Button(btn_frame, text="Back", command=self.dashboard).grid(row=0, column=3, padx=5)
-
-        self.tree.bind("<<TreeviewSelect>>", self.on_tree_select)
-
-    def load_products(self):
-        for row in self.tree.get_children():
-            self.tree.delete(row)
-        self.cursor.execute("SELECT * FROM Products")
-        for product in self.cursor.fetchall():
-            self.tree.insert("", "end", values=(product['product_id'], product['name'], product['description'], product['quantity_available']))
-
-    def on_tree_select(self, event):
-        selected = self.tree.focus()
-        if selected:
-            values = self.tree.item(selected, 'values')
-            self.name_entry.delete(0, tk.END)
-            self.name_entry.insert(0, values[1])
-            self.desc_entry.delete(0, tk.END)
-            self.desc_entry.insert(0, values[2])
-            self.qty_entry.delete(0, tk.END)
-            self.qty_entry.insert(0, values[3])
-
-    def add_product(self):
-        name = self.name_entry.get()
-        desc = self.desc_entry.get()
-        qty = self.qty_entry.get()
-        if not name or not qty.isdigit():
-            messagebox.showerror("Error", "Name and valid quantity required")
-            return
-        self.cursor.execute("INSERT INTO Products (name, description, quantity_available) VALUES (%s, %s, %s)", (name, desc, int(qty)))
-        self.db.commit()
+    def add_product():
+        cursor.execute("INSERT INTO Products (name, description, quantity_available) VALUES (%s, %s, %s)",
+                       (name_entry.get(), desc_entry.get(), int(qty_entry.get())))
+        db.commit()
         messagebox.showinfo("Success", "Product added")
-        self.load_products()
-        self.clear_entries()
+        admin_dashboard(user_id, username)
 
-    def update_product(self):
-        selected = self.tree.focus()
-        if not selected:
-            messagebox.showerror("Error", "Select a product to update")
-            return
-        product_id = self.tree.item(selected, 'values')[0]
-        name = self.name_entry.get()
-        desc = self.desc_entry.get()
-        qty = self.qty_entry.get()
-        if not name or not qty.isdigit():
-            messagebox.showerror("Error", "Name and valid quantity required")
-            return
-        self.cursor.execute(
-            "UPDATE Products SET name=%s, description=%s, quantity_available=%s WHERE product_id=%s",
-            (name, desc, int(qty), product_id)
-        )
-        self.db.commit()
-        messagebox.showinfo("Success", "Product updated")
-        self.load_products()
-        self.clear_entries()
+    tk.Button(main_frame, text="Add Product", command=add_product).pack(pady=5)
 
-    def delete_product(self):
-        selected = self.tree.focus()
-        if not selected:
-            messagebox.showerror("Error", "Select a product to delete")
-            return
-        product_id = self.tree.item(selected, 'values')[0]
-        self.cursor.execute("DELETE FROM Products WHERE product_id=%s", (product_id,))
-        self.db.commit()
-        messagebox.showinfo("Success", "Product deleted")
-        self.load_products()
-        self.clear_entries()
+    # Product list
+    cursor.execute("SELECT * FROM Products")
+    rows = cursor.fetchall()
+    for row in rows:
+        tk.Label(main_frame, text=f"{row[0]} | {row[1]} | Qty: {row[3]}").pack()
 
-    def clear_entries(self):
-        self.name_entry.delete(0, tk.END)
-        self.desc_entry.delete(0, tk.END)
-        self.qty_entry.delete(0, tk.END)
+    tk.Button(main_frame, text="Logout", command=login_page).pack(pady=10)
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = InventoryApp(root)
-    root.mainloop()
+def user_dashboard(user_id, username):
+    clear_frame(main_frame)
+    tk.Label(main_frame, text=f"User Panel - {username}", font=('Arial', 14)).pack(pady=10)
+
+    def view_orders():
+        clear_frame(main_frame)
+        tk.Label(main_frame, text="Your Orders").pack()
+        cursor.execute("""SELECT o.order_id, p.name, o.quantity, o.order_date
+                          FROM Orders o JOIN Products p ON o.product_id = p.product_id
+                          WHERE o.user_id = %s""", (user_id,))
+        for row in cursor.fetchall():
+            tk.Label(main_frame, text=f"Order #{row[0]}: {row[1]} x{row[2]} on {row[3]}").pack()
+        tk.Button(main_frame, text="Back", command=lambda: user_dashboard(user_id, username)).pack()
+
+    def view_products_and_order():
+        clear_frame(main_frame)
+        tk.Label(main_frame, text="Products").pack()
+
+        cursor.execute("SELECT product_id, name, quantity_available FROM Products")
+        products = cursor.fetchall()
+        product_combo = ttk.Combobox(main_frame, values=[
+            f"{p[0]} - {p[1]} (Available: {p[2]})" for p in products])
+        product_combo.pack()
+
+        tk.Label(main_frame, text="Quantity to Order").pack()
+        qty_entry = tk.Entry(main_frame)
+        qty_entry.pack()
+
+        def place_order():
+            selection = product_combo.get()
+            if not selection or not qty_entry.get().isdigit():
+                messagebox.showerror("Error", "Invalid input")
+                return
+            product_id = int(selection.split(" - ")[0])
+            quantity = int(qty_entry.get())
+            cursor.execute("SELECT quantity_available FROM Products WHERE product_id=%s", (product_id,))
+            result = cursor.fetchone()
+            if result and result[0] >= quantity:
+                cursor.execute("INSERT INTO Orders (user_id, product_id, quantity) VALUES (%s, %s, %s)",
+                               (user_id, product_id, quantity))
+                cursor.execute("UPDATE Products SET quantity_available = quantity_available - %s WHERE product_id = %s",
+                               (quantity, product_id))
+                db.commit()
+                messagebox.showinfo("Success", "Order placed!")
+                user_dashboard(user_id, username)
+            else:
+                messagebox.showerror("Error", "Not enough stock")
+
+        tk.Button(main_frame, text="Place Order", command=place_order).pack()
+        tk.Button(main_frame, text="Back", command=lambda: user_dashboard(user_id, username)).pack()
+
+    tk.Button(main_frame, text="View My Orders", command=view_orders).pack(pady=5)
+    tk.Button(main_frame, text="Place New Order", command=view_products_and_order).pack(pady=5)
+    tk.Button(main_frame, text="Logout", command=login_page).pack(pady=10)
+
+# Start app
+login_page()
+root.mainloop()
