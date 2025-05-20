@@ -33,7 +33,7 @@ CREATE TABLE `orders` (
   KEY `product_id` (`product_id`),
   CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
   CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -42,7 +42,7 @@ CREATE TABLE `orders` (
 
 LOCK TABLES `orders` WRITE;
 /*!40000 ALTER TABLE `orders` DISABLE KEYS */;
-INSERT INTO `orders` VALUES (1,2,1,2,'2025-05-20 22:23:19');
+INSERT INTO `orders` VALUES (1,2,1,2,'2025-05-20 22:23:19'),(2,2,2,2,'2025-05-20 23:02:56'),(3,2,4,1,'2025-05-20 23:03:46'),(4,2,5,23,'2025-05-21 00:21:44'),(5,6,2,12,'2025-05-21 01:52:31'),(6,5,2,2,'2025-05-21 02:06:05'),(7,1,1,1,'2025-05-21 02:56:14'),(8,1,4,3,'2025-05-21 02:56:20');
 /*!40000 ALTER TABLE `orders` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -59,7 +59,7 @@ CREATE TABLE `products` (
   `description` text,
   `quantity_available` int DEFAULT '0',
   PRIMARY KEY (`product_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -68,7 +68,7 @@ CREATE TABLE `products` (
 
 LOCK TABLES `products` WRITE;
 /*!40000 ALTER TABLE `products` DISABLE KEYS */;
-INSERT INTO `products` VALUES (1,'Sample Product 1','Description for product 1',8),(2,'Sample Product 2','Description for product 2',20);
+INSERT INTO `products` VALUES (1,'Ice Americano','coffee drink made by pouring espresso shots over ice and then adding cold water',7),(2,'Iced Latte','cold, coffee drink made with espresso, milk, and ice.',4),(4,'Winston Red','Red Winstone',1),(5,'Malboro Blast','Ice Blast Malboro',23);
 /*!40000 ALTER TABLE `products` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -86,7 +86,7 @@ CREATE TABLE `users` (
   `role` enum('admin','user') DEFAULT 'user',
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `username` (`username`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -95,7 +95,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'admin','admin123','user'),(2,'admin2','admin','user'),(4,'admin4','adminpass','admin');
+INSERT INTO `users` VALUES (1,'user','user','user'),(2,'gon','gon','user'),(4,'admin','admin','admin'),(5,'','','user'),(6,'gongonos','gongonos','user');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -108,4 +108,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-05-20 22:39:11
+-- Dump completed on 2025-05-21  3:05:51
