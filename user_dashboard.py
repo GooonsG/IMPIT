@@ -3,9 +3,9 @@ from tkinter import ttk, messagebox
 from db_config import get_db_connection
 from utils import clear_frame
 
-PRIMARY_BLUE = "#2563eb"
-LIGHT_BLUE = "#dbeafe"
-ACCENT_YELLOW = "#fde047"
+PRIMARY_BLUE = "#1F1B4F"
+LIGHT_BLUE = "#F4F4F8"
+ACCENT_YELLOW = "#F9BF3B"
 WHITE = "#ffffff"
 FONT = ("Segoe UI", 12)
 HEADER_FONT = ("Segoe UI", 16, "bold")
@@ -54,7 +54,7 @@ def open_user_dashboard(root, frame, user_id, username):
                  font=HEADER_FONT, bg=LIGHT_BLUE, fg=PRIMARY_BLUE
                  ).pack(pady=(0, 6))
 
-        # Fetch & display product table
+        # Fetch product list
         db = get_db_connection()
         cursor = db.cursor()
         cursor.execute("SELECT product_id, name, quantity_available FROM Products")
@@ -71,12 +71,25 @@ def open_user_dashboard(root, frame, user_id, username):
             product_table.insert("", "end", values=prod)
         product_table.pack(pady=8, padx=6)
 
-        combo = ttk.Combobox(frame, values=[f"{p[0]} - {p[1]} (Qty: {p[2]})" for p in products], font=FONT)
-        combo.pack(pady=(4,2))
+        # Combo and Entry
+        combo_values = [f"{p[0]} - {p[1]} (Qty: {p[2]})" for p in products]
+        combo = ttk.Combobox(frame, values=combo_values, font=FONT, width=40)
+        combo.pack(pady=(4, 2))
 
         tk.Label(frame, text="Quantity to Order", font=FONT, bg=LIGHT_BLUE, fg=PRIMARY_BLUE).pack()
         qty_entry = tk.Entry(frame, font=FONT)
         qty_entry.pack(pady=(0, 6))
+
+        # on_select function
+        def on_select(event):
+            selected = product_table.focus()
+            if not selected:
+                return
+            values = product_table.item(selected, "values")
+            combo.set(f"{values[0]} - {values[1]} (Qty: {values[2]})")
+            qty_entry.focus()
+
+        product_table.bind("<<TreeviewSelect>>", on_select)
 
         def place_order():
             if not combo.get() or not qty_entry.get().isdigit():
@@ -96,11 +109,11 @@ def open_user_dashboard(root, frame, user_id, username):
                                (qty, product_id))
                 db.commit()
                 messagebox.showinfo("Success", "Order placed")
+                view_products()  # refresh view
             else:
                 messagebox.showerror("Error", "Insufficient stock")
             db.close()
 
-        # Horizontal buttons
         button_frame = tk.Frame(frame, bg=LIGHT_BLUE)
         button_frame.pack(pady=8)
         ttk.Button(button_frame, text="Place Order", style="Accent.TButton",
@@ -113,6 +126,7 @@ def open_user_dashboard(root, frame, user_id, username):
         root.geometry("800x450")
         frame.configure(bg=LIGHT_BLUE)
         tk.Label(frame, text="Your Orders", font=HEADER_FONT, bg=LIGHT_BLUE, fg=PRIMARY_BLUE).pack(pady=8)
+
         db = get_db_connection()
         cursor = db.cursor()
         cursor.execute("""
@@ -124,7 +138,6 @@ def open_user_dashboard(root, frame, user_id, username):
         orders = cursor.fetchall()
         db.close()
 
-        # Orders table view
         columns = ("Order ID", "Product", "Quantity", "Date")
         order_table = ttk.Treeview(frame, columns=columns, show="headings", height=6)
         for col in columns:
@@ -137,7 +150,7 @@ def open_user_dashboard(root, frame, user_id, username):
         ttk.Button(frame, text="Back", style="Primary.TButton",
                    command=lambda: open_user_dashboard(root, frame, user_id, username)).pack(pady=6)
 
-    # Horizontal dashboard buttons
+    # Dashboard buttons
     dashboard_btn_frame = tk.Frame(frame, bg=LIGHT_BLUE)
     dashboard_btn_frame.pack(pady=15)
     ttk.Button(dashboard_btn_frame, text="Place Order", style="Primary.TButton",

@@ -3,9 +3,9 @@ from tkinter import ttk, messagebox
 from db_config import get_db_connection
 from utils import clear_frame
 
-PRIMARY_BLUE = "#2563eb"
-LIGHT_BLUE = "#dbeafe"
-ACCENT_YELLOW = "#fde047"
+PRIMARY_BLUE = "#1F1B4F"
+LIGHT_BLUE = "#20141c"
+ACCENT_YELLOW = "#F9BF3B"
 WHITE = "#ffffff"
 FONT = ("Segoe UI", 12)
 HEADER_FONT = ("Segoe UI", 16, "bold")
@@ -15,23 +15,33 @@ def style_widgets(root):
     style.theme_use("clam")
     style.configure("Treeview",
                     background=WHITE,
-                    foreground="#222",
+                    foreground=PRIMARY_BLUE,
                     rowheight=28,
                     fieldbackground=WHITE,
-                    font=FONT)
+                    font=FONT,
+
+                    )
+
+
     style.configure("Treeview.Heading",
                     font=FONT,
                     background=PRIMARY_BLUE,
-                    foreground=WHITE)
+                    foreground=WHITE,
+
+                    )
     style.map("Treeview", background=[('selected', PRIMARY_BLUE)])
     style.configure("Accent.TButton",
                     background=ACCENT_YELLOW,
-                    foreground="#1e293b",
-                    font=FONT)
+                    foreground=WHITE,
+                    font=FONT,
+
+                    )
     style.configure("Primary.TButton",
                     background=PRIMARY_BLUE,
                     foreground=WHITE,
-                    font=FONT)
+                    font=FONT,
+
+                    )
     style.map("Accent.TButton",
               background=[('active', "#facc15"), ('!active', ACCENT_YELLOW)])
     style.map("Primary.TButton",
@@ -44,15 +54,19 @@ def open_admin_dashboard(root, frame):
     frame.configure(bg=LIGHT_BLUE)
 
     tk.Label(frame, text="Admin Dashboard",
-             font=HEADER_FONT, bg=LIGHT_BLUE, fg=PRIMARY_BLUE).pack(pady=10)
+             font=HEADER_FONT, bg=LIGHT_BLUE, fg=ACCENT_YELLOW).pack(pady=10)
+
+    tree_frame = tk.Frame(frame, bg=ACCENT_YELLOW, bd=2, relief="solid")
+    tree_frame.pack(padx=5, pady=5)
 
     # Treeview (table)
     columns = ("ID", "Name", "Description", "Quantity")
-    tree = ttk.Treeview(frame, columns=columns, show="headings")
+    tree = ttk.Treeview(tree_frame, columns=columns, show="headings")
     for col in columns:
         tree.heading(col, text=col)
         tree.column(col, anchor='center')
     tree.pack(padx=8, pady=10)
+
 
     def refresh_tree():
         for row in tree.get_children():
