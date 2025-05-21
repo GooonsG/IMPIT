@@ -7,6 +7,7 @@ PRIMARY_BLUE = "#1F1B4F"
 LIGHT_BLUE = "#20141c"
 ACCENT_YELLOW = "#F9BF3B"
 WHITE = "#ffffff"
+FF = "#f4eee2"
 FONT = ("Segoe UI", 12)
 HEADER_FONT = ("Segoe UI", 16, "bold")
 
@@ -14,10 +15,10 @@ def style_widgets(root):
     style = ttk.Style(root)
     style.theme_use("clam")
     style.configure("Treeview",
-                    background=WHITE,
+                    background=FF,
                     foreground=PRIMARY_BLUE,
                     rowheight=28,
-                    fieldbackground=WHITE,
+                    fieldbackground=FF,
                     font=FONT,
 
                     )
@@ -146,18 +147,21 @@ def open_admin_dashboard(root, frame):
     tree.bind("<<TreeviewSelect>>", on_select)
 
     # Entry form inside a colored frame
-    form_frame = tk.Frame(frame, bg=WHITE, bd=2, relief=tk.GROOVE)
+
+
+
+    form_frame = tk.Frame(frame, bg=FF, bd=2, relief=tk.GROOVE)
     form_frame.pack(pady=12, padx=16, fill="x", ipadx=6, ipady=8)
 
-    tk.Label(form_frame, text="Name:", font=FONT, bg=WHITE, fg=PRIMARY_BLUE).grid(row=0, column=0, sticky="e", padx=4, pady=4)
+    tk.Label(form_frame, text="Name:", font=FONT, bg=FF, fg=PRIMARY_BLUE).grid(row=0, column=0, sticky="e", padx=4, pady=4)
     name_entry = tk.Entry(form_frame, font=FONT, width=20)
     name_entry.grid(row=0, column=1, padx=4, pady=4)
 
-    tk.Label(form_frame, text="Description:", font=FONT, bg=WHITE, fg=PRIMARY_BLUE).grid(row=1, column=0, sticky="e", padx=4, pady=4)
+    tk.Label(form_frame, text="Description:", font=FONT, bg=FF, fg=PRIMARY_BLUE).grid(row=1, column=0, sticky="e", padx=4, pady=4)
     desc_entry = tk.Entry(form_frame, font=FONT, width=20)
     desc_entry.grid(row=1, column=1, padx=4, pady=4)
 
-    tk.Label(form_frame, text="Quantity:", font=FONT, bg=WHITE, fg=PRIMARY_BLUE).grid(row=2, column=0, sticky="e", padx=4, pady=4)
+    tk.Label(form_frame, text="Quantity:", font=FONT, bg=FF, fg=PRIMARY_BLUE).grid(row=2, column=0, sticky="e", padx=4, pady=4)
     qty_entry = tk.Entry(form_frame, font=FONT, width=20)
     qty_entry.grid(row=2, column=1, padx=4, pady=4)
 

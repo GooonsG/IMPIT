@@ -7,6 +7,7 @@ PRIMARY_BLUE = "#1F1B4F"
 LIGHT_BLUE = "#F4F4F8"
 ACCENT_YELLOW = "#F9BF3B"
 WHITE = "#ffffff"
+FF = "#f4eee2"
 FONT = ("Segoe UI", 12)
 HEADER_FONT = ("Segoe UI", 16, "bold")
 
@@ -14,10 +15,10 @@ def style_widgets(root):
     style = ttk.Style(root)
     style.theme_use("clam")
     style.configure("Treeview",
-                    background=WHITE,
+                    background=FF,
                     foreground="#222",
                     rowheight=28,
-                    fieldbackground=WHITE,
+                    fieldbackground=FF,
                     font=FONT)
     style.configure("Treeview.Heading",
                     font=FONT,
@@ -147,8 +148,36 @@ def open_user_dashboard(root, frame, user_id, username):
             order_table.insert("", "end", values=order)
         order_table.pack(pady=8, padx=6)
 
-        ttk.Button(frame, text="Back", style="Primary.TButton",
-                   command=lambda: open_user_dashboard(root, frame, user_id, username)).pack(pady=6)
+        # --- Remove Order functionality ---
+        def remove_order():
+            selected = order_table.focus()
+            if not selected:
+                messagebox.showwarning("Select Order", "Please select an order to remove.")
+                return
+            order_id = order_table.item(selected, "values")[0]
+            answer = messagebox.askyesno("Confirm", "Are you sure you want to remove this order?")
+            if answer:
+                db = get_db_connection()
+                cursor = db.cursor()
+                # Find the product_id and quantity to restock the product
+                cursor.execute("SELECT product_id, quantity FROM Orders WHERE order_id=%s", (order_id,))
+                result = cursor.fetchone()
+                if result:
+                    product_id, qty = result
+                    cursor.execute("DELETE FROM Orders WHERE order_id=%s", (order_id,))
+                    cursor.execute("UPDATE Products SET quantity_available = quantity_available + %s WHERE product_id = %s",
+                                   (qty, product_id))
+                    db.commit()
+                db.close()
+                messagebox.showinfo("Removed", "Order has been removed.")
+                view_orders()
+
+        button_frame = tk.Frame(frame, bg=LIGHT_BLUE)
+        button_frame.pack(pady=2)
+        ttk.Button(button_frame, text="Remove Selected Order", style="Accent.TButton",
+                   command=remove_order).pack(side=tk.LEFT, padx=4)
+        ttk.Button(button_frame, text="Back", style="Primary.TButton",
+                   command=lambda: open_user_dashboard(root, frame, user_id, username)).pack(side=tk.LEFT, padx=4)
 
     # Dashboard buttons
     dashboard_btn_frame = tk.Frame(frame, bg=LIGHT_BLUE)
