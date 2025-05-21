@@ -4,11 +4,12 @@ from db_config import get_db_connection
 from utils import clear_frame
 
 PRIMARY_BLUE = "#1F1B4F"
-LIGHT_BLUE = "#F4F4F8"
+LIGHT_BLUE = "#20141c"
 ACCENT_YELLOW = "#F9BF3B"
 WHITE = "#ffffff"
 FF = "#f4eee2"
 FONT = ("Segoe UI", 12)
+BOLD_FONT = ("Segoe UI", 12, "bold")
 HEADER_FONT = ("Segoe UI", 16, "bold")
 
 def style_widgets(root):
@@ -45,14 +46,14 @@ def open_user_dashboard(root, frame, user_id, username):
     frame.configure(bg=LIGHT_BLUE)
 
     tk.Label(frame, text=f"Welcome, {username}",
-             font=HEADER_FONT, bg=LIGHT_BLUE, fg=PRIMARY_BLUE
+             font=HEADER_FONT, bg=LIGHT_BLUE, fg=ACCENT_YELLOW
              ).pack(pady=8)
 
     def view_products():
         clear_frame(frame)
         frame.configure(bg=LIGHT_BLUE)
         tk.Label(frame, text="Products",
-                 font=HEADER_FONT, bg=LIGHT_BLUE, fg=PRIMARY_BLUE
+                 font=HEADER_FONT, bg=LIGHT_BLUE, fg=ACCENT_YELLOW
                  ).pack(pady=(0, 6))
 
         # Fetch product list
@@ -63,8 +64,11 @@ def open_user_dashboard(root, frame, user_id, username):
         db.close()
 
         # Product Table
+        tree_frame = tk.Frame(frame, bg=ACCENT_YELLOW, bd=2, relief="solid")
+        tree_frame.pack(padx=5, pady=5)
+
         columns = ("ID", "Name", "Quantity")
-        product_table = ttk.Treeview(frame, columns=columns, show="headings", height=5)
+        product_table = ttk.Treeview(tree_frame, columns=columns, show="headings", height=5)
         for col in columns:
             product_table.heading(col, text=col)
             product_table.column(col, anchor='center')
@@ -77,7 +81,7 @@ def open_user_dashboard(root, frame, user_id, username):
         combo = ttk.Combobox(frame, values=combo_values, font=FONT, width=40)
         combo.pack(pady=(4, 2))
 
-        tk.Label(frame, text="Quantity to Order", font=FONT, bg=LIGHT_BLUE, fg=PRIMARY_BLUE).pack()
+        tk.Label(frame, text="Quantity to Order", font=BOLD_FONT, bg=LIGHT_BLUE, fg=ACCENT_YELLOW).pack()
         qty_entry = tk.Entry(frame, font=FONT)
         qty_entry.pack(pady=(0, 6))
 
@@ -126,7 +130,7 @@ def open_user_dashboard(root, frame, user_id, username):
         clear_frame(frame)
         root.geometry("800x450")
         frame.configure(bg=LIGHT_BLUE)
-        tk.Label(frame, text="Your Orders", font=HEADER_FONT, bg=LIGHT_BLUE, fg=PRIMARY_BLUE).pack(pady=8)
+        tk.Label(frame, text="Your Orders", font=HEADER_FONT, bg=LIGHT_BLUE, fg=ACCENT_YELLOW).pack(pady=8)
 
         db = get_db_connection()
         cursor = db.cursor()
@@ -139,8 +143,11 @@ def open_user_dashboard(root, frame, user_id, username):
         orders = cursor.fetchall()
         db.close()
 
+        ttree_frame = tk.Frame(frame, bg=ACCENT_YELLOW, bd=2, relief="solid")
+        ttree_frame.pack(padx=5, pady=5)
+
         columns = ("Order ID", "Product", "Quantity", "Date")
-        order_table = ttk.Treeview(frame, columns=columns, show="headings", height=6)
+        order_table = ttk.Treeview(ttree_frame, columns=columns, show="headings", height=6)
         for col in columns:
             order_table.heading(col, text=col)
             order_table.column(col, anchor='center')
