@@ -10,6 +10,9 @@ WHITE = "#ffffff"
 FF = "#f4eee2"
 FONT = ("Segoe UI", 12)
 HEADER_FONT = ("Segoe UI", 16, "bold")
+ALT_ROW = "#edecec"
+ROUNDED_RADIUS = 15
+
 
 def style_widgets(root):
     style = ttk.Style(root)
@@ -57,17 +60,18 @@ def open_admin_dashboard(root, frame):
     tk.Label(frame, text="Admin Dashboard",
              font=HEADER_FONT, bg=LIGHT_BLUE, fg=ACCENT_YELLOW).pack(pady=10)
 
-    tree_frame = tk.Frame(frame, bg=ACCENT_YELLOW, bd=2, relief="solid")
+    tree_frame = tk.Frame(frame, bg=ACCENT_YELLOW,highlightbackground=ACCENT_YELLOW,highlightthickness=2, bd=2, relief="solid")
     tree_frame.pack(padx=5, pady=5)
+    inner_frame = tk.Frame(tree_frame, bg=FF)
+    inner_frame.pack(padx=6, pady=6)
 
     # Treeview (table)
     columns = ("ID", "Name", "Description", "Quantity")
-    tree = ttk.Treeview(tree_frame, columns=columns, show="headings")
+    tree = ttk.Treeview(inner_frame, columns=columns, show="headings")
     for col in columns:
         tree.heading(col, text=col)
         tree.column(col, anchor='center')
     tree.pack(padx=8, pady=10)
-
 
     def refresh_tree():
         for row in tree.get_children():
@@ -75,8 +79,11 @@ def open_admin_dashboard(root, frame):
         db = get_db_connection()
         cursor = db.cursor()
         cursor.execute("SELECT product_id, name, description, quantity_available FROM Products")
-        for row in cursor.fetchall():
-            tree.insert("", "end", values=row)
+        for idx, row in enumerate(cursor.fetchall()):
+            tag = "evenrow" if idx % 2 == 0 else "oddrow"
+            tree.insert("", "end", values=row, tags=(tag,))
+        tree.tag_configure('evenrow', background=FF)
+        tree.tag_configure('oddrow', background=ALT_ROW)
         db.close()
 
     def add_product():
@@ -88,6 +95,14 @@ def open_admin_dashboard(root, frame):
             return
         db = get_db_connection()
         cursor = db.cursor()
+
+        cursor.execute("SELECT COUNT(*) FROM Products WHERE name = %s", (name,))
+        exists = cursor.fetchone()[0]
+        if exists:
+            db.close()
+            messagebox.showerror("Error", "Product name already exists!")
+            return
+
         cursor.execute(
             "INSERT INTO Products (name, description, quantity_available) VALUES (%s, %s, %s)",
             (name, desc, int(qty))
@@ -140,6 +155,7 @@ def open_admin_dashboard(root, frame):
         if not selected:
             clear_entries()
             return
+
         values = tree.item(selected)["values"]
         name_entry.delete(0, tk.END)
         name_entry.insert(0, values[1])
