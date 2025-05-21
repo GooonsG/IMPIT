@@ -118,13 +118,22 @@ def open_admin_dashboard(root, frame):
         if not selected:
             return
         item = tree.item(selected)['values']
-        db = get_db_connection()
-        cursor = db.cursor()
-        cursor.execute("DELETE FROM Products WHERE product_id=%s", (item[0],))
-        db.commit()
-        db.close()
-        refresh_tree()
-        clear_entries()
+
+        if not messagebox.askyesno("Confirm Delete", "Are you sure you want to delete this product?"):
+            return
+
+        try:
+            db = get_db_connection()
+            cursor = db.cursor()
+            cursor.execute("DELETE FROM Products WHERE product_id=%s", (item[0],))
+            db.commit()
+            db.close()
+            refresh_tree()
+            clear_entries()
+        except Exception as e:
+            db.rollback()
+            db.close()
+            messagebox.showerror("Error", "Cannot delete product. It is used in existing orders.")
 
     def on_select(event):
         selected = tree.focus()
@@ -165,12 +174,43 @@ def open_admin_dashboard(root, frame):
     qty_entry = tk.Entry(form_frame, font=FONT, width=20)
     qty_entry.grid(row=2, column=1, padx=4, pady=4)
 
-    # Button group
-    btn_frame = tk.Frame(frame, bg=LIGHT_BLUE)
-    btn_frame.pack(pady=12)
-    ttk.Button(btn_frame, text="Add", style="Accent.TButton", width=10, command=add_product).grid(row=0, column=0, padx=8)
-    ttk.Button(btn_frame, text="Update", style="Primary.TButton", width=10, command=update_product).grid(row=0, column=1, padx=8)
-    ttk.Button(btn_frame, text="Delete", style="Accent.TButton", width=10, command=delete_product).grid(row=0, column=2, padx=8)
-    ttk.Button(btn_frame, text="Logout", style="Primary.TButton", width=10, command=lambda: __import__('login').show_login(root, frame)).grid(row=0, column=3, padx=12)
+    # --- Edit Dropdown Button ---
+    edit_frame = tk.Frame(frame, bg=LIGHT_BLUE)
+    edit_frame.pack(pady=12)
+
+    def show_edit_menu(event):
+        x = event.widget.winfo_rootx()
+        y = event.widget.winfo_rooty() + event.widget.winfo_height()
+        edit_menu.tk_popup(x, y)
+
+    def edit_action(action):
+        if action == "Add":
+            add_product()
+        elif action == "Update":
+            update_product()
+        elif action == "Delete":
+            delete_product()
+
+    # Creating the popup menu
+    edit_menu = tk.Menu(root, tearoff=0)
+    edit_menu.add_command(label="Add", command=lambda: edit_action("Add"))
+    edit_menu.add_command(label="Edit", command=lambda: edit_action("Update"))
+    edit_menu.add_command(label="Delete", command=lambda: edit_action("Delete"))
+
+    # Edit button
+    edit_btn = ttk.Button(
+        edit_frame, text="Update", style="Accent.TButton", width=10)
+    edit_btn.grid(row=0, column=0, padx=8)
+    # Bind left mouse click to show the menu
+    edit_btn.bind("<Button-1>", show_edit_menu)
+
+    # Logout button
+    ttk.Button(
+        edit_frame,
+        text="Logout",
+        style="Primary.TButton",
+        width=10,
+        command=lambda: __import__('login').show_login(root, frame)
+    ).grid(row=0, column=1, padx=12)
 
     refresh_tree()

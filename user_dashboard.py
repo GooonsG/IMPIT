@@ -59,7 +59,7 @@ def open_user_dashboard(root, frame, user_id, username):
         # Fetch product list
         db = get_db_connection()
         cursor = db.cursor()
-        cursor.execute("SELECT product_id, name, quantity_available FROM Products")
+        cursor.execute("SELECT name, description, quantity_available FROM Products")
         products = cursor.fetchall()
         db.close()
 
@@ -67,7 +67,7 @@ def open_user_dashboard(root, frame, user_id, username):
         tree_frame = tk.Frame(frame, bg=ACCENT_YELLOW, bd=2, relief="solid")
         tree_frame.pack(padx=5, pady=5)
 
-        columns = ("ID", "Name", "Quantity")
+        columns = ("Name", "Description", "Quantity")
         product_table = ttk.Treeview(tree_frame, columns=columns, show="headings", height=5)
         for col in columns:
             product_table.heading(col, text=col)
@@ -77,7 +77,7 @@ def open_user_dashboard(root, frame, user_id, username):
         product_table.pack(pady=8, padx=6)
 
         # Combo and Entry
-        combo_values = [f"{p[0]} - {p[1]} (Qty: {p[2]})" for p in products]
+        combo_values = [f"{p[0]}" for p in products]
         combo = ttk.Combobox(frame, values=combo_values, font=FONT, width=40)
         combo.pack(pady=(4, 2))
 
@@ -91,7 +91,7 @@ def open_user_dashboard(root, frame, user_id, username):
             if not selected:
                 return
             values = product_table.item(selected, "values")
-            combo.set(f"{values[0]} - {values[1]} (Qty: {values[2]})")
+            combo.set(f"{values[0]}")
             qty_entry.focus()
 
         product_table.bind("<<TreeviewSelect>>", on_select)
@@ -114,7 +114,7 @@ def open_user_dashboard(root, frame, user_id, username):
                                (qty, product_id))
                 db.commit()
                 messagebox.showinfo("Success", "Order placed")
-                view_products()  # refresh view
+                view_products()
             else:
                 messagebox.showerror("Error", "Insufficient stock")
             db.close()
@@ -135,7 +135,7 @@ def open_user_dashboard(root, frame, user_id, username):
         db = get_db_connection()
         cursor = db.cursor()
         cursor.execute("""
-            SELECT o.order_id, p.name, o.quantity, o.order_date
+            SELECT o.order_id, p.name,p.description,o.quantity, o.order_date
             FROM Orders o
             JOIN Products p ON o.product_id = p.product_id
             WHERE o.user_id = %s
@@ -146,8 +146,11 @@ def open_user_dashboard(root, frame, user_id, username):
         ttree_frame = tk.Frame(frame, bg=ACCENT_YELLOW, bd=2, relief="solid")
         ttree_frame.pack(padx=5, pady=5)
 
-        columns = ("Order ID", "Product", "Quantity", "Date")
+        columns = ("Order ID", "Product", "Description","Quantity", "Date")
         order_table = ttk.Treeview(ttree_frame, columns=columns, show="headings", height=6)
+        order_table.column("Order ID", width=70)
+        order_table.column("Product", width=150)
+        order_table.column("Quantity", width=70)
         for col in columns:
             order_table.heading(col, text=col)
             order_table.column(col, anchor='center')
